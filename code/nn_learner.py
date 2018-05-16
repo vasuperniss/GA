@@ -34,7 +34,7 @@ def train_classifier(train_set, dev_set, num_iterations, learning_rate, model, r
 
 
 if __name__ == '__main__':
-    model = nn_mdl.NNModel([28*28, 200, 10])
+    model = nn_mdl.NNModel([28*28, 256, 128, 10])
 
     train_set, dev_set = load_mnist('../mnist_data')
 
