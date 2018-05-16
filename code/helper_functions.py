@@ -4,6 +4,7 @@
 #################################
 import numpy as np
 import struct
+import pickle
 
 
 def softmax(x):
@@ -31,7 +32,7 @@ def load_mnist(folder_path):
     std = np.sqrt(np.sum((train_x - mean) ** 2) / (len(train_x) * len(train_x[0])))
     print 'dataset mean:', mean
     print 'dataset std:', std
-    train_x = (train_x - mean) / std
+    train_x = (train_x - mean) # / std
     print 'dataset normalized.'
 
     train_set = np.c_[train_x.reshape(len(train_x), -1), train_y.reshape(len(train_y), -1)]
@@ -51,3 +52,14 @@ def accuracy_on_dataset(data_set, model):
         else:
             wrong += 1
     return correct / (correct + wrong)
+
+
+def save_model(model, filename):
+    file_pickle = open(filename, 'wb')
+    pickle.dump(model, file_pickle)
+
+
+def load_model(filename):
+    file_pickle = open(filename, 'rb')
+    model = pickle.load(file_pickle)
+    return model

@@ -8,6 +8,7 @@ from helper_functions import softmax
 
 class NNModel(object):
     def __init__(self, dims):
+        self.loss_data = []
         self.dims = dims
         self.params = []
         for i in range(0, len(dims) - 1):
@@ -19,6 +20,9 @@ class NNModel(object):
             self.params.append(w)
             self.params.append(b)
         self.num_params = len(self.params)
+
+    def add_loss_data(self, loss):
+        self.loss_data.append(loss)
 
     def feed_forward(self, input_vec):
         curr_layer = input_vec
@@ -67,7 +71,7 @@ class NNModel(object):
         return loss, grads
 
     def train_on_example(self, input_vec, y_true, learning_rate, regularization):
-        loss, grads = self.loss_and_gradients(input_vec, y_true, 0.4, 0.1)
+        loss, grads = self.loss_and_gradients(input_vec, y_true, 0.3, 0.1)
         for i in range(0, self.num_params):
             # update the parameters with gradients, and add L2 regularization
             self.params[i] -= learning_rate * (grads[i] + self.params[i] * regularization)
