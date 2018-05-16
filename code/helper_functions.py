@@ -22,9 +22,17 @@ def read_idx(filename):
 
 
 def load_mnist(folder_path):
+    print 'loading dataset...'
     train_y = read_idx(folder_path + '/train-labels-idx1-ubyte/data')
     train_x = read_idx(folder_path + '/train-images-idx3-ubyte/data')
-    train_x = (train_x.reshape((len(train_y), 28*28)) / 255.0) - 0.173
+    train_x = (train_x.reshape((len(train_y), 28*28)) / 255.0)
+
+    mean = np.sum(train_x) / (len(train_x) * len(train_x[0]))
+    std = np.sqrt(np.sum((train_x - mean) ** 2) / (len(train_x) * len(train_x[0])))
+    print 'dataset mean:', mean
+    print 'dataset std:', std
+    train_x = (train_x - mean) / std
+    print 'dataset normalized.'
 
     train_set = np.c_[train_x.reshape(len(train_x), -1), train_y.reshape(len(train_y), -1)]
     dev_set = train_set[50000:60000]

@@ -35,10 +35,6 @@ class NNModel(object):
         return np.argmax(self.feed_forward(input_vec))
 
     def loss_and_gradients(self, input_vec, y_true, hidden_dropout, input_dropout):
-        # temp = np.zeros(self.params[-1].shape)
-        # temp[int(y_true)] = 1
-        # y_true = temp
-
         hidden_layers = []
         dropouts = []
         hidden_layers_tanh = [input_vec * np.random.binomial(1, 1.0 - input_dropout, size=input_vec.shape)]
@@ -48,12 +44,11 @@ class NNModel(object):
             hidden_layers.append(np.dot(hidden_layers_tanh[i / 2], self.params[i]) + self.params[i + 1])
             dropout = np.random.binomial(1, keep, size=hidden_layers[-1].shape) * scale
             dropouts.append(dropout)
-            hidden_layers_tanh.append(np.tanh(hidden_layers[-1])  * dropout)
+            hidden_layers_tanh.append(np.tanh(hidden_layers[-1]) * dropout)
         y_hat = np.dot(hidden_layers_tanh[len(hidden_layers_tanh) - 1], self.params[-2]) + self.params[-1]
         y_hat = softmax(y_hat)
         loss = - np.log(y_hat[int(y_true)])
 
-        # d_loss_d_out = -y_true + y_hat * np.sum(y_true)
         d_loss_d_out = y_hat
         d_loss_d_out[int(y_true)] -= 1
         grads = []
