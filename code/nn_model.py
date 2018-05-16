@@ -34,24 +34,28 @@ class NNModel(object):
     def predict(self, input_vec):
         return np.argmax(self.feed_forward(input_vec))
 
-    def loss_and_gradients(self, input_vec, y_true):
-        temp = np.zeros(self.params[-1].shape)
-        temp[int(y_true)] = 1
-        y_true = temp
+    def loss_and_gradients(self, input_vec, y_true, hidden_dropout, input_dropout):
+        # temp = np.zeros(self.params[-1].shape)
+        # temp[int(y_true)] = 1
+        # y_true = temp
 
         hidden_layers = []
         dropouts = []
-        hidden_layers_tanh = [input_vec]
+        hidden_layers_tanh = [input_vec * np.random.binomial(1, 1.0 - input_dropout, size=input_vec.shape)]
+        keep = 1.0 - hidden_dropout
+        scale = 1.0 / keep
         for i in range(0, self.num_params - 2, 2):
             hidden_layers.append(np.dot(hidden_layers_tanh[i / 2], self.params[i]) + self.params[i + 1])
-            dropout = np.random.binomial([np.ones(hidden_layers[i / 2].shape)],1-0.2)[0] * (1.0/(1-0.2))
+            dropout = np.random.binomial(1, keep, size=hidden_layers[-1].shape) * scale
             dropouts.append(dropout)
-            hidden_layers_tanh.append(np.tanh(hidden_layers[i / 2]))  # * dropout)
+            hidden_layers_tanh.append(np.tanh(hidden_layers[-1])  * dropout)
         y_hat = np.dot(hidden_layers_tanh[len(hidden_layers_tanh) - 1], self.params[-2]) + self.params[-1]
         y_hat = softmax(y_hat)
-        loss = - np.sum(y_true * np.log(y_hat))
+        loss = - np.log(y_hat[int(y_true)])
 
-        d_loss_d_out = -y_true + y_hat * np.sum(y_true)
+        # d_loss_d_out = -y_true + y_hat * np.sum(y_true)
+        d_loss_d_out = y_hat
+        d_loss_d_out[int(y_true)] -= 1
         grads = []
         for t in range(0, len(hidden_layers_tanh)):
             index = len(hidden_layers_tanh) - 1 - t
@@ -68,7 +72,7 @@ class NNModel(object):
         return loss, grads
 
     def train_on_example(self, input_vec, y_true, learning_rate, regularization):
-        loss, grads = self.loss_and_gradients(input_vec, y_true)
+        loss, grads = self.loss_and_gradients(input_vec, y_true, 0.4, 0.1)
         for i in range(0, self.num_params):
             # update the parameters with gradients, and add L2 regularization
             self.params[i] -= learning_rate * (grads[i] + self.params[i] * regularization)

@@ -24,7 +24,7 @@ def read_idx(filename):
 def load_mnist(folder_path):
     train_y = read_idx(folder_path + '/train-labels-idx1-ubyte/data')
     train_x = read_idx(folder_path + '/train-images-idx3-ubyte/data')
-    train_x = train_x.reshape((len(train_y), 28*28)) / 255.0
+    train_x = (train_x.reshape((len(train_y), 28*28)) / 255.0) - 0.173
 
     train_set = np.c_[train_x.reshape(len(train_x), -1), train_y.reshape(len(train_y), -1)]
     dev_set = train_set[50000:60000]

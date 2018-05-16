@@ -24,8 +24,8 @@ def train_classifier(train_set, dev_set, num_iterations, learning_rate, model, r
             if count % 5000 == 0:
                 took = time.time() - start_time
                 start_time = time.time()
-                print '\t', (count / len(train_set)) * 100, '% complete. average loss <-', avg_loss / 5000,\
-                    'took:', took, 'seconds'
+                print '\t', (count / len(train_set)) * 100, '% complete.', 'took:', took,\
+                    'seconds. average loss <-', avg_loss / 5000
                 avg_loss = 0
         train_loss = total_loss / len(train_set)
         train_accuracy = accuracy_on_dataset(train_set, model)
@@ -34,7 +34,7 @@ def train_classifier(train_set, dev_set, num_iterations, learning_rate, model, r
 
 
 if __name__ == '__main__':
-    model = nn_mdl.NNModel([28*28, 400, 200, 10])
+    model = nn_mdl.NNModel([28*28, 200, 10])
 
     train_set, dev_set = load_mnist('../mnist_data')
 
