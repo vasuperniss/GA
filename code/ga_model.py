@@ -27,6 +27,21 @@ class Genetic_NNModel(object):
 
     def feed_forward(self, input_vec):
         curr_layer = input_vec
+        keep = 1.0 - 0.3
+        scale = 1.0 / keep
+        for i in range(0, self.num_params - 2, 2):
+            # new layer = old layer * W + b
+            curr_layer = np.dot(self.params[i], curr_layer) + self.params[i + 1]
+            # non linearity
+            dropout = np.random.binomial(1, keep, size=curr_layer.shape) * scale
+            curr_layer = np.tanh(curr_layer) * dropout
+            # curr_layer = np.maximum(curr_layer, 0, curr_layer)
+        curr_layer = np.dot(self.params[-2], curr_layer) + self.params[-1]
+        curr_layer = softmax(curr_layer)
+        return curr_layer
+
+    def predict(self, input_vec):
+        curr_layer = input_vec
         for i in range(0, self.num_params - 2, 2):
             # new layer = old layer * W + b
             curr_layer = np.dot(self.params[i], curr_layer) + self.params[i + 1]
@@ -34,11 +49,8 @@ class Genetic_NNModel(object):
             curr_layer = np.tanh(curr_layer)
             # curr_layer = np.maximum(curr_layer, 0, curr_layer)
         curr_layer = np.dot(self.params[-2], curr_layer) + self.params[-1]
-        curr_layer = softmax(curr_layer)
-        return curr_layer
-
-    def predict(self, input_vec):
-        return np.argmax(self.feed_forward(input_vec))
+        # curr_layer = softmax(curr_layer)
+        return np.argmax(curr_layer)
 
     def loss(self, input_vec, y_true):
         y_hat = self.feed_forward(input_vec)
@@ -49,6 +61,7 @@ class Genetic_NNModel(object):
         self.batch_loss = 0.0
         for example in batch:
             self.batch_loss += self.loss(example[:-1], example[-1])
+        return self.batch_loss
 
     def mate_with(self, model2, blank):
         child = blank

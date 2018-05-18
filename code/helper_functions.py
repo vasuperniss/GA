@@ -32,7 +32,7 @@ def load_mnist(folder_path):
     std = np.sqrt(np.sum((train_x - mean) ** 2) / (len(train_x) * len(train_x[0])))
     print 'dataset mean:', mean
     print 'dataset std:', std
-    train_x = (train_x - mean) # / std
+    train_x = (train_x - (mean / 2)) # / std
     print 'dataset normalized.'
 
     train_set = np.c_[train_x.reshape(len(train_x), -1), train_y.reshape(len(train_y), -1)]

@@ -41,13 +41,14 @@ def train_classifier(train_set, dev_set, num_iterations, learning_rate, model, r
 
 
 if __name__ == '__main__':
-    model_file = '../saved_models/nn.mdl.pickle'
+    model_file = '../saved_models/nn2layers.mdl.pickle'
     if len(sys.argv) > 1:
         model = load_model(model_file)
+        # print model.loss_data
     else:
-        model = nn_mdl.NNModel([28*28, 256, 10])
+        model = nn_mdl.NNModel([28*28, 400, 300, 10])
 
     train_set, dev_set = load_mnist('../mnist_data')
 
-    train_classifier(train_set, dev_set, num_iterations=20, learning_rate=0.01, model=model,
+    train_classifier(train_set, dev_set, num_iterations=20, learning_rate=0.001, model=model,
                      regularization=1e-6, model_file=model_file)

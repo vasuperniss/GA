@@ -71,7 +71,7 @@ class NNModel(object):
         return loss, grads
 
     def train_on_example(self, input_vec, y_true, learning_rate, regularization):
-        loss, grads = self.loss_and_gradients(input_vec, y_true, 0.3, 0.1)
+        loss, grads = self.loss_and_gradients(input_vec, y_true, 0.0, 0.1)
         for i in range(0, self.num_params):
             # update the parameters with gradients, and add L2 regularization
             self.params[i] -= learning_rate * (grads[i] + self.params[i] * regularization)

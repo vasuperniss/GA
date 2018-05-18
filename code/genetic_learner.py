@@ -7,11 +7,24 @@ import numpy as np
 import random as rand
 import time
 from helper_functions import load_mnist, accuracy_on_dataset
+from multiprocessing import Pool
+
+
+def calc_loss_model(model_batch):
+    return model_batch[0].loss_on_batch(model_batch[1])
 
 
 def calc_loss(models, batch):
     for m in models:
         m.loss_on_batch(batch)
+
+
+def calc_loss_with_pool(models, batch, pool):
+    map_list = []
+    for m in models:
+        map_list.append((m, batch))
+    pool.map(calc_loss_model, map_list)
+    # pool.join()
 
 
 def crossovers(losses, roulette, new_population, blank_models, children_count):
@@ -28,11 +41,12 @@ def train_classifier(train_set, dev_set, num_iterations, models, roulette):
     population_size = len(models)
     blank_models = []
     for b in range(population_size - 2):
-        blank = ga_mdl.Genetic_NNModel([28*28, 200, 10])
+        blank = ga_mdl.Genetic_NNModel([28*28, 256, 10])
         blank_models.append(blank)
 
     batch_size = 50
     population = models
+    # pool = Pool(4)
     for epoch in range(num_iterations):
         np.random.shuffle(train_set)
         avg_loss = 0
@@ -41,7 +55,10 @@ def train_classifier(train_set, dev_set, num_iterations, models, roulette):
         for batch_index in range(0, length, batch_size):
             losses = []
             batch = train_set[batch_index:batch_index + batch_size]
+
+            # s_t = time.time()
             calc_loss(population, batch)
+            # print time.time() - s_t
             for model in population:
                 losses.append([model.batch_loss, model])
             losses = sorted(losses)
@@ -64,13 +81,14 @@ def train_classifier(train_set, dev_set, num_iterations, models, roulette):
         train_accuracy = accuracy_on_dataset(train_set, model)
         dev_accuracy = accuracy_on_dataset(dev_set, model)
         print '****** EPOCH SUMMARY', epoch, train_accuracy, dev_accuracy
+    # pool.close()
 
 
 if __name__ == '__main__':
     models = []
-    population_size = 50
+    population_size = 40
     for i in range(population_size):
-        model = ga_mdl.Genetic_NNModel([28*28, 200, 10])
+        model = ga_mdl.Genetic_NNModel([28*28, 256, 10])
         models.append(model)
 
     train_set, dev_set = load_mnist('../mnist_data')
