@@ -26,17 +26,17 @@ class Genetic_NNModel(object):
         self.num_params = len(self.params)
 
     def feed_forward(self, input_vec):
-        curr_layer = input_vec
-        keep = 1.0 - 0.3
-        scale = 1.0 / keep
+        curr_layer = input_vec.T
         for i in range(0, self.num_params - 2, 2):
             # new layer = old layer * W + b
-            curr_layer = np.dot(self.params[i], curr_layer) + self.params[i + 1]
+            curr_layer = (np.dot(self.params[i], curr_layer).T + self.params[i + 1]).T
             # non linearity
-            dropout = np.random.binomial(1, keep, size=curr_layer.shape) * scale
-            curr_layer = np.tanh(curr_layer) * dropout
+            curr_layer = np.tanh(curr_layer)
             # curr_layer = np.maximum(curr_layer, 0, curr_layer)
-        curr_layer = np.dot(self.params[-2], curr_layer) + self.params[-1]
+            # mean = np.sum(curr_layer) / (len(curr_layer) * len(curr_layer[0]))
+            # std = np.sqrt(np.sum((curr_layer - mean) ** 2) / (len(curr_layer) * len(curr_layer[0])))
+            # curr_layer = (curr_layer - mean) / std
+        curr_layer = np.dot(self.params[-2], curr_layer).T + self.params[-1]
         curr_layer = softmax(curr_layer)
         return curr_layer
 
@@ -48,6 +48,9 @@ class Genetic_NNModel(object):
             # non linearity
             curr_layer = np.tanh(curr_layer)
             # curr_layer = np.maximum(curr_layer, 0, curr_layer)
+            # mean = np.sum(curr_layer) / (len(curr_layer))
+            # std = np.sqrt(np.sum((curr_layer - mean) ** 2) / (len(curr_layer)))
+            # curr_layer = (curr_layer - mean) / std
         curr_layer = np.dot(self.params[-2], curr_layer) + self.params[-1]
         # curr_layer = softmax(curr_layer)
         return np.argmax(curr_layer)
@@ -63,7 +66,15 @@ class Genetic_NNModel(object):
             self.batch_loss += self.loss(example[:-1], example[-1])
         return self.batch_loss
 
-    def mate_with(self, model2, blank):
+    def loss_on_batch2(self, batch):
+        self.batch_loss = 0.0
+        y_hats = self.feed_forward(batch[:,:-1])
+        # print y_hats[np.arange(len(y_hats)), batch[:,-1].astype(dtype=int)]
+        self.batch_loss = -np.sum(np.log(y_hats[np.arange(len(y_hats)), batch[:,-1].astype(dtype=int)]))
+        return self.batch_loss
+
+
+    def mate_with(self, model2, blank, avg_rank):
         child = blank
         for i in range(self.num_params):
             param1 = self.params[i]
@@ -73,20 +84,49 @@ class Genetic_NNModel(object):
             else:
                 dim = param2.shape[0]
                 size = 1
+            # if size == 1:
             for j in range(dim):
                 flip = rand.randint(0, 1)
                 if flip == 0:
                     child.params[i][j] = param1[j]
                 else:
                     child.params[i][j] = param2[j]
-            if rand.randint(0, 2) >= 1:
-                child.params[i] += np.random.normal(0, 0.001, child.params[i].shape)
-            if rand.randint(0, 9) == 1:
-                x = rand.randint(0, dim-1)
-                y = rand.randint(0, size-1)
-                r = self.init_distribution[i]
-                if size > 1:
-                    child.params[i][x, y] = np.random.uniform(-r, r)
-                elif rand.randint(0, 1) == 1:
-                    child.params[i][x] = np.random.uniform(-r, r)
+            # else:
+            #     for j in range(size):
+            #         flip = rand.randint(0, 1)
+            #         if flip == 0:
+            #             child.params[i][:,j] = param1[:,j]
+            #         else:
+            #             child.params[i][:,j] = param2[:,j]
+            # else:
+            #     if rand.randint(0, 40) == 0:
+            #         for j in range(size):
+            #             flip = rand.randint(0, 1)
+            #             if flip == 0:
+            #                 child.params[i][:,j] = param1[:,j]
+            #             else:
+            #                 child.params[i][:,j] = param2[:,j]
+            #     else:
+            #         for j in range(dim):
+            #             flip = rand.randint(0, 1)
+            #             if flip == 0:
+            #                 child.params[i][j] = param1[j]
+            #             else:
+            #                 child.params[i][j] = param2[j]
+            if rand.randint(0, 4) >= 1:
+                if avg_rank <= 4:
+                    child.params[i] += np.random.normal(0, 0.0001, child.params[i].shape)
+                if avg_rank <= 10:
+                    child.params[i] += np.random.normal(0, 0.0005, child.params[i].shape)
+                else:
+                    child.params[i] += np.random.normal(0, 0.001, child.params[i].shape)
+            for rank in range(avg_rank / 2):
+                if rand.randint(0, 4) == 1:
+                    x = rand.randint(0, dim-1)
+                    y = rand.randint(0, size-1)
+                    r = self.init_distribution[i]
+                    if size > 1:
+                        child.params[i][x, y] = np.random.uniform(-r, r)
+                    elif rand.randint(0, 1) == 1:
+                        child.params[i][x] = np.random.uniform(-r, r)
         return child
