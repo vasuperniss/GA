@@ -59,20 +59,27 @@ class NNModel(object):
 
     def crossover(self, other):
         child = NNModel()
+        child2 = NNModel()
 
         crossover_keep = np.random.binomial(1, 1.0 - 0.5, size=self.w1.shape[1])
         child.w1 = self.w1 * crossover_keep + other.w1 * (1 - crossover_keep)
         child.b1 = self.b1 * crossover_keep + other.b1 * (1 - crossover_keep)
+        child2.w1 = other.w1 * crossover_keep + self.w1 * (1 - crossover_keep)
+        child2.b1 = other.b1 * crossover_keep + self.b1 * (1 - crossover_keep)
 
         crossover_keep = np.random.binomial(1, 1.0 - 0.5, size=self.w2.shape[1])
         child.w2 = self.w2 * crossover_keep + other.w2 * (1 - crossover_keep)
         child.b2 = self.b2 * crossover_keep + other.b2 * (1 - crossover_keep)
+        child2.w2 = other.w2 * crossover_keep + self.w2 * (1 - crossover_keep)
+        child2.b2 = other.b2 * crossover_keep + self.b2 * (1 - crossover_keep)
 
         crossover_keep = np.random.binomial(1, 1.0 - 0.5, size=self.w3.shape[1])
         child.w3 = self.w3 * crossover_keep + other.w3 * (1 - crossover_keep)
         child.b3 = self.b3 * crossover_keep + other.b3 * (1 - crossover_keep)
+        child2.w3 = other.w3 * crossover_keep + self.w3 * (1 - crossover_keep)
+        child2.b3 = other.b3 * crossover_keep + self.b3 * (1 - crossover_keep)
 
-        return child
+        return child, child2
 
     def mutate(self):
         self.w1 += np.random.normal(0, 0.001, self.w1.shape)
