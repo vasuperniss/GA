@@ -69,14 +69,13 @@ class Genetic_NNModel(object):
     def loss_on_batch2(self, batch):
         self.batch_loss = 0.0
         y_hats = self.feed_forward(batch[:,:-1])
-        # print y_hats[np.arange(len(y_hats)), batch[:,-1].astype(dtype=int)]
-        self.batch_loss = -np.sum(np.log(y_hats[np.arange(len(y_hats)), batch[:,-1].astype(dtype=int)]))
+        self.batch_loss = -np.sum((np.log(y_hats[np.arange(len(y_hats)), batch[:,-1].astype(dtype=int)])))
         return self.batch_loss
 
 
     def mate_with(self, model2, blank, avg_rank):
         child = blank
-        for i in range(self.num_params):
+        for i in range(0, self.num_params, 1):
             param1 = self.params[i]
             param2 = model2.params[i]
             if len(param2.shape) > 1:
@@ -85,46 +84,38 @@ class Genetic_NNModel(object):
                 dim = param2.shape[0]
                 size = 1
             # if size == 1:
-            for j in range(dim):
-                flip = rand.randint(0, 1)
-                if flip == 0:
-                    child.params[i][j] = param1[j]
-                else:
-                    child.params[i][j] = param2[j]
-            # else:
-            #     for j in range(size):
-            #         flip = rand.randint(0, 1)
-            #         if flip == 0:
-            #             child.params[i][:,j] = param1[:,j]
-            #         else:
-            #             child.params[i][:,j] = param2[:,j]
-            # else:
-            #     if rand.randint(0, 40) == 0:
-            #         for j in range(size):
-            #             flip = rand.randint(0, 1)
-            #             if flip == 0:
-            #                 child.params[i][:,j] = param1[:,j]
-            #             else:
-            #                 child.params[i][:,j] = param2[:,j]
-            #     else:
-            #         for j in range(dim):
-            #             flip = rand.randint(0, 1)
-            #             if flip == 0:
-            #                 child.params[i][j] = param1[j]
-            #             else:
-            #                 child.params[i][j] = param2[j]
+            if size > 1 and rand.randint(0, 40) == -1:
+                for j in range(size):
+                    flip = rand.randint(0, 1)
+                    if flip == 0:
+                        child.params[i][:,j] = param1[:,j]
+                    else:
+                        child.params[i][:,j] = param2[:,j]
+            else:
+                # for j in range(dim):
+                #     if size > 1 and rand.randint(0, 500) == 0:
+                #         r = self.init_distribution[i]
+                #         child.params[i][j] =  np.random.uniform(-r, r, (size))
+                #     else:
+                #         flip = rand.randint(0, 1)
+                #         if flip == 0:
+                #             child.params[i][j] = param1[j]
+                #         else:
+                #             child.params[i][j] = param2[j]
+                D = np.random.binomial(1, 0.5, size=dim)
+                child.params[i] = param1 * D[:, np.newaxis] + param2 * (1 - D)
             if rand.randint(0, 4) >= 1:
                 if avg_rank <= 4:
-                    child.params[i] += np.random.normal(0, 0.0001, child.params[i].shape)
+                    child.params[i] += np.random.normal(0, 0.00001, child.params[i].shape)
                 if avg_rank <= 10:
-                    child.params[i] += np.random.normal(0, 0.0005, child.params[i].shape)
+                    child.params[i] += np.random.normal(0, 0.00005, child.params[i].shape)
                 else:
-                    child.params[i] += np.random.normal(0, 0.001, child.params[i].shape)
+                    child.params[i] += np.random.normal(0, 0.0001, child.params[i].shape)
             for rank in range(avg_rank / 2):
                 if rand.randint(0, 4) == 1:
                     x = rand.randint(0, dim-1)
                     y = rand.randint(0, size-1)
-                    r = self.init_distribution[i]
+                    r = self.init_distribution[i] * 3
                     if size > 1:
                         child.params[i][x, y] = np.random.uniform(-r, r)
                     elif rand.randint(0, 1) == 1:

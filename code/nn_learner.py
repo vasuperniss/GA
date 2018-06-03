@@ -69,14 +69,29 @@ def train_classifier(train_set, dev_set, num_iterations, learning_rate, model, r
 
 if __name__ == '__main__':
     model_file = '../saved_models/nn1classifier.mdl.pickle'
-    if len(sys.argv) > 1:
-        model = load_model(model_file)
-        # print model.loss_data
-    else:
-        model = nn_mdl.NNModel([28*28, 256, 10])
+    # if len(sys.argv) > 1:
+    #     model = load_model(model_file)
+    #     # print model.loss_data
+    # else:
+    #     model = nn_mdl.NNModel([28*28, 500, 10])
 
     train_set, dev_set = load_mnist('../mnist_data')
-
+    # dev_accuracy = accuracy_on_dataset(dev_set, model)
+    # print dev_accuracy
+    #
+    # for param in model.params:
+    #     print param.shape
+    #     cols = 1
+    #     if len(param.shape) > 1:
+    #         rows, cols = param.shape
+    #     else:
+    #         rows = param.shape[0]
+    #     mean = np.sum(param) / (rows * cols)
+    #     std = np.sqrt(np.sum(np.abs(param - mean)) / (rows * cols))
+    #     print 'param mean:', mean
+    #     print 'param std:', std
+    #     print 'param max', np.max(param)
+    #     print 'param min', np.min(param)
 
     # plt.imshow(np.concatenate((np.concatenate((train_set[0][0:-1].reshape((28,28)), model.feed_forward(train_set[0][0:-1]).reshape((28,28))), axis=1),
     #                            np.concatenate((train_set[1][0:-1].reshape((28, 28)), model.feed_forward(train_set[1][0:-1]).reshape((28, 28))), axis=1),
@@ -89,8 +104,8 @@ if __name__ == '__main__':
 
     # model_file = '../saved_models/nn2classifier.mdl.pickle'
     # model = nn_mdl.NNModel([256, 256, 10])
-    # model = nn_mdl.NNModel([256, 200, 200, 10])
+    model = nn_mdl.NNModel([28*28, 400, 200, 10])
     # model = load_model(model_file)
-    train_classifier(train_set, dev_set, num_iterations=20, learning_rate=0.0001, model=model, regularization=1e-7, model_file=model_file)
+    train_classifier(train_set, dev_set, num_iterations=20, learning_rate=0.01, model=model, regularization=1e-7, model_file=model_file)
 
     # train_auto_encoder(train_set, dev_set, num_iterations=20, learning_rate=0.001, model=model,
